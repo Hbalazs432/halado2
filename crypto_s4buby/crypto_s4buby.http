@@ -1,0 +1,6 @@
+@crypto_s4buby_HostAddress = http://localhost:5069
+
+GET {{crypto_s4buby_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
