@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using crypto_s4buby.Context.Entities;
+using Microsoft.EntityFrameworkCore;
 
-namespace crypto_s4buby.Entities
+namespace crypto_s4buby.Context.Context
 {
     public class CryptoDbContext : DbContext
     {
@@ -12,11 +13,7 @@ namespace crypto_s4buby.Entities
         public DbSet<Crypto> Cryptos { get; set; }
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<WalletItem> WalletItems { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Wallet>().HasOne(w => w.Owner)
-                .WithOne(w => w.Wallet).HasForeignKey<User>(u => u.WalletId);
-        }
+        public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<CryptoHistory> CryptoHistories { get; set; }
     }
 }

@@ -5,7 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using crypto_s4buby.Entities;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using crypto_s4buby.Services;
+using crypto_s4buby.Context.Context;
+using crypto_s4buby.Context.Dtos;
+using crypto_s4buby.Context.Entities;
 
 namespace crypto_s4buby.Controllers
 {
@@ -13,95 +17,97 @@ namespace crypto_s4buby.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly CryptoDbContext _context;
+        private readonly IUserService _userService;
 
-        public UsersController(CryptoDbContext context)
+        public UsersController(IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
 
-        // GET: api/Users
+        
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<IActionResult> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            try
+            {
+                var users = await _userService.GetAllUsersAsync();
+                return Ok(users);
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-        // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
         {
-            var user = await _context.Users.FindAsync(id);
-
-            if (user == null)
+            try
             {
-                return NotFound();
+                var res = await _userService.LoginAsync(userLoginDto);
+                return Ok("Successful login!");
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
+            
+        }
 
-            return user;
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUser(int userId)
+        {
+            try
+            {
+                var res = await _userService.GetUserByIdAsync(userId);
+                return Ok(res);
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> UpdateUser(int userId, [FromBody] UserUpdateDto userUpdateDto)
         {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+                var res = await _userService.UpdateUserAsync(userId, userUpdateDto);
+                return Ok(res);
 
-            return NoContent();
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterUser(UserRegisterDto userRegisterDto)
         {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+            try
+            {
+                var result = await _userService.RegisterAsync(userRegisterDto);
+                return Ok(result);
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> DeleteUser(int userId)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            try
             {
-                return NotFound();
+                var result = await _userService.DeleteUserAsync(userId);
+                return Ok();
+            }catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool UserExists(int id)
-        {
-            return _context.Users.Any(e => e.Id == id);
         }
     }
 }

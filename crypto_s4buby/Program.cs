@@ -1,6 +1,8 @@
-using crypto_s4buby.Entities;
-using crypto_s4buby.Repository;
+using crypto_s4buby;
+using crypto_s4buby.Context.Context;
+using crypto_s4buby.Services;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -15,12 +17,18 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<CryptoDbContext>(options => options.UseSqlServer("Server=(localdb)\\Localdb1;Database=CryptoDb_S4BUBY;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;"));
 //builder.Services.AddDbContext<CryptoDbContext>(options => options.UseSqlServer("Server=(local);Database=CryptoDb_S4BUBY;Trusted_Connection=True;TrustServerCertificate=True"));
 
-builder.Services.AddScoped<UnitOfWork>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<ICryptoService, CryptoService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+
+builder.Services.AddHostedService<ExchangeRateBackgroundService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+//builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 var app = builder.Build();
 
